@@ -1,0 +1,139 @@
+/* Navbar Component Styles */
+.navbar {
+  position: fixed;
+  left: 0;
+  top: 80px; /* Account for header height */
+  width: 80px;
+  height: calc(100vh - 80px);
+  background-color: #F4F6F8; /* Ceramic white background */
+  border-right: 1px solid #E2E8F0;
+  z-index: 100;
+  display: flex;
+  flex-direction: column;
+  padding: 20px 0;
+}
+
+.navList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+
+.navItem {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.navLink {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 60px;
+  height: 60px; /* Minimum 44px touch target, using 60px for better usability */
+  padding: 8px;
+  border-radius: 12px;
+  text-decoration: none;
+  color: #334155; /* Midnight slate color */
+  background-color: transparent;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+
+.navLink:hover {
+  background-color: #E2E8F0;
+  transform: translateY(-1px);
+}
+
+.navLink:focus {
+  outline: none;
+  border-color: #3B82F6;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+}
+
+.navLink.active {
+  background-color: #3B82F6;
+  color: white;
+}
+
+.navLink.active:hover {
+  background-color: #2563EB;
+}
+
+.navIcon {
+  margin-bottom: 4px;
+  display: block;
+  color: inherit;
+}
+
+.navText {
+  font-size: 10px;
+  font-weight: 500;
+  text-align: center;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+/* Tablet-specific optimizations */
+@media (min-width: 768px) and (max-width: 1024px) {
+  .navbar {
+    width: 90px;
+  }
+  
+  .navLink {
+    width: 70px;
+    height: 70px;
+  }
+  
+  .navIcon {
+    /* Icon size is controlled by the size prop in JSX */
+  }
+  
+  .navText {
+    font-size: 11px;
+  }
+}
+
+/* Touch device optimizations */
+@media (hover: none) and (pointer: coarse) {
+  .navLink {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  .navLink:hover {
+    transform: none; /* Remove hover animations on touch devices */
+  }
+}
+
+/* Landscape tablet orientation */
+@media (orientation: landscape) and (max-height: 768px) {
+  .navbar {
+    top: 60px; /* Smaller header in landscape */
+    height: calc(100vh - 60px);
+    padding: 16px 0;
+  }
+  
+  .navList {
+    gap: 12px;
+  }
+  
+  .navLink {
+    height: 50px;
+    width: 50px;
+  }
+  
+  .navIcon {
+    /* Icon size is controlled by the size prop in JSX */
+  }
+  
+  .navText {
+    font-size: 9px;
+  }
+}
