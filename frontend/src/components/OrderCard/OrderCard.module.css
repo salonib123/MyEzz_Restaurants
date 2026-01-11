@@ -1,260 +1,442 @@
-/* Order Card Styles */
+/* Order Card Styles - Clean UI/UX Design System */
 .orderCard {
-  background-color: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  padding: 16px;
-  margin-bottom: 12px;
-  transition: all 0.2s ease;
+  background: rgba(26, 28, 32, 0.6); /* More transparent to show background */
+  border: none; /* Remove all default borders */
+  border-radius: 16px; /* Slightly smaller radius for cleaner look */
+  box-shadow: 
+    0 4px 20px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  padding: 1.5rem;
+  margin-bottom: 1.25rem;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  position: relative;
+  overflow: hidden;
+}
+
+.orderCard::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: radial-gradient(circle at top right, rgba(255, 255, 255, 0.02) 0%, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+.orderCard > * {
+  position: relative;
+  z-index: 1;
 }
 
 .orderCard:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.12);
 }
 
-/* Status-based styling - removed border colors */
+/* Remove default left borders - clean design */
 .newOrder {
-  /* No border styling */
+  /* No left border */
 }
 
 .preparing {
-  /* No border styling */
+  /* No left border */
 }
 
 .ready {
-  /* No border styling */
+  /* No left border */
 }
 
-/* Card Header */
+/* Card Header with Order ID on Left, Timer Below */
 .cardHeader {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  margin-bottom: 1.25rem;
+  position: relative;
 }
 
+/* Enhanced Order ID - Monospace Font for Technical Precision */
 .orderId {
-  font-family: 'Inter', sans-serif;
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', 'Monaco', 'Inconsolata', 'Roboto Mono', monospace;
   font-weight: 800;
-  font-size: 18px;
+  font-size: 1.75rem; /* Slightly smaller for better balance */
   margin: 0;
-  color: #1e293b;
+  color: var(--color-pure-white);
+  letter-spacing: -0.01em;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+  line-height: 1;
+}
+
+/* Timer positioned below the order ID to avoid overlap */
+.timer {
+  position: static;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
+  color: var(--color-pure-white);
+  padding: 0.5rem 0.75rem;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 0.75rem;
+  box-shadow: 
+    0 2px 8px rgba(245, 158, 11, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  margin-top: 0.5rem;
+  align-self: flex-start;
+  /* Removed animation - no blink effect */
+}
+
+/* Delayed Timer - Red for Orders Over 15 Minutes */
+.timerDelayed {
+  background: linear-gradient(135deg, var(--color-crimson-red) 0%, #7F1D1D 100%) !important;
+  box-shadow: 
+    0 2px 8px rgba(153, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2) !important;
+  /* No pulsing animation */
 }
 
 .statusBadge {
-  font-size: 12px;
+  font-size: 0.75rem;
   font-weight: 600;
-  padding: 4px 8px;
-  border-radius: 6px;
+  padding: 0.375rem 0.75rem;
+  border-radius: 8px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
+  border: none;
+  margin-top: 0.5rem;
 }
 
 .newOrder .statusBadge {
-  background-color: #fef2f2;
-  color: #be123c; /* text-rose-700 */
+  background: rgba(255, 102, 0, 0.15);
+  color: var(--color-sunset-orange);
 }
 
 .preparing .statusBadge {
-  background-color: #fffbeb;
-  color: #b45309; /* text-amber-700 */
+  background: rgba(245, 158, 11, 0.15);
+  color: #F59E0B; /* Yellow for preparing */
 }
 
 .ready .statusBadge {
-  background-color: #ecfdf5;
-  color: #047857; /* text-emerald-700 */
+  background: rgba(16, 185, 129, 0.15);
+  color: #10B981; /* Green for ready */
 }
 
-/* Customer Info */
+/* Customer Info - Properly Muted */
 .customerInfo {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 12px;
-  color: #64748b;
-  font-size: 14px;
+  gap: 0.75rem;
+  margin-bottom: 1.25rem;
+  color: var(--color-slate-silver);
+  font-size: 0.875rem;
+  font-weight: 500;
 }
 
-/* Order Items */
+.customerName {
+  color: rgba(148, 163, 184, 0.6); /* More muted */
+}
+
+/* Enhanced Order Items with Checkboxes */
 .orderItems {
-  margin-bottom: 12px;
+  margin-bottom: 1.25rem;
 }
 
 .orderItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-  font-size: 14px;
+  gap: 0.75rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
 }
 
-.quantity {
-  font-weight: 600;
-  color: #475569;
-  min-width: 24px;
-}
-
-.itemName {
-  color: #334155;
-}
-
-/* Order Total */
-.orderTotal {
-  font-size: 16px;
-  color: #1e293b;
-  margin-bottom: 12px;
-  padding-top: 8px;
-  border-top: 1px solid #e2e8f0;
-}
-
-/* Timer */
-.timer {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #fffbeb;
-  color: #b45309;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  margin-bottom: 12px;
-}
-
-/* Verification Code */
-.verificationCode {
-  background-color: #ecfdf5;
-  padding: 12px;
-  border-radius: 8px;
-  text-align: center;
-  margin-bottom: 12px;
-}
-
-.codeLabel {
-  font-size: 12px;
-  color: #047857;
-  font-weight: 500;
-  margin-bottom: 4px;
-}
-
-.code {
-  font-size: 24px;
-  font-weight: 800;
-  color: #047857;
-  font-family: 'Inter', monospace;
-  letter-spacing: 2px;
-}
-
-/* Card Actions */
-.cardActions {
-  display: flex;
-  gap: 8px;
-  margin-top: 12px;
-}
-
-/* Button Styles */
-.acceptBtn {
-  flex: 1;
-  background-color: #10b981;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.acceptBtn:hover {
-  background-color: #059669;
-  transform: translateY(-1px);
-}
-
-.acceptBtn:active {
-  transform: translateY(0);
-}
-
-.rejectBtn {
-  flex: 1;
-  background-color: transparent;
-  color: #dc2626;
-  border: 2px solid #dc2626;
-  padding: 8px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.rejectBtn:hover {
-  background-color: #dc2626;
-  color: white;
-  transform: translateY(-1px);
-}
-
-.rejectBtn:active {
-  transform: translateY(0);
-}
-
-.markReadyBtn {
-  width: 100%;
-  background-color: #f59e0b;
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 14px;
-  cursor: pointer;
-  transition: all 0.2s ease;
+.itemCheckbox {
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--color-slate-silver);
+  border-radius: 3px;
+  background: transparent;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 6px;
-}
-
-.markReadyBtn:hover {
-  background-color: #d97706;
-  transform: translateY(-1px);
-}
-
-.markReadyBtn:active {
-  transform: translateY(0);
-}
-
-.handToRiderBtn {
-  width: 100%;
-  background-color: #047857;
-  color: white;
-  border: none;
-  padding: 12px 16px;
-  border-radius: 8px;
-  font-weight: 600;
-  font-size: 16px;
   cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.itemCheckbox:hover {
+  border-color: var(--color-emerald-green);
+  background: rgba(16, 185, 129, 0.1);
+}
+
+.itemCheckbox.checked {
+  background: var(--color-emerald-green);
+  border-color: var(--color-emerald-green);
+  color: var(--color-pure-white);
+}
+
+.quantity {
+  font-weight: 800;
+  color: var(--color-sunset-orange);
+  min-width: 1.5rem;
+  font-size: 0.875rem;
+}
+
+.itemName {
+  color: var(--color-pure-white);
+  font-weight: 500;
   transition: all 0.2s ease;
 }
 
-.handToRiderBtn:hover {
-  background-color: #065f46;
-  transform: translateY(-1px);
+.strikethrough {
+  text-decoration: line-through;
+  opacity: 0.5;
 }
 
-.handToRiderBtn:active {
-  transform: translateY(0);
+/* Clean Total Price */
+.orderTotal {
+  font-size: 1.125rem;
+  color: var(--color-pure-white);
+  margin-bottom: 1.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-weight: 600;
+}
+
+.orderTotal strong {
+  color: var(--color-emerald-green);
+  font-weight: 700;
+}
+
+/* Clean Verification Code */
+.verificationCode {
+  background: rgba(16, 185, 129, 0.1);
+  padding: 1rem;
+  border-radius: 12px;
+  text-align: center;
+  margin-bottom: 1.25rem;
+  border: 2px dashed rgba(16, 185, 129, 0.3);
+  box-shadow: 
+    0 2px 8px rgba(16, 185, 129, 0.15),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.codeLabel {
+  font-size: 0.75rem;
+  color: var(--color-emerald-green);
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.code {
+  font-size: 2rem;
+  font-weight: 800;
+  color: var(--color-emerald-green);
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', monospace;
+  letter-spacing: 0.25rem;
+  text-shadow: 0 1px 4px rgba(16, 185, 129, 0.3);
+}
+
+/* Clean Action Buttons */
+.cardActions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+}
+
+/* Accept Button - Green with Hologram Slide Effect */
+.acceptBtn {
+  flex: 2;
+  background: var(--color-emerald-green);
+  color: var(--color-pure-white) !important;
+  border: none;
+  padding: 0.875rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.acceptBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.acceptBtn:hover::before {
+  left: 100%;
+}
+
+.acceptBtn:hover {
+  background: var(--color-emerald-glow);
+  color: var(--color-pure-white) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
+}
+
+/* Reject Button - Red with Hologram Slide Effect */
+.rejectBtn {
+  flex: 1;
+  background: var(--color-crimson-red);
+  color: var(--color-pure-white) !important;
+  border: none;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(153, 0, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.rejectBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.rejectBtn:hover::before {
+  left: 100%;
+}
+
+.rejectBtn:hover {
+  background: #7F1D1D;
+  color: var(--color-pure-white) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(153, 0, 0, 0.4);
+}
+
+/* Mark Ready Button - Orange with Hologram Slide Effect */
+.markReadyBtn {
+  width: 100%;
+  background: linear-gradient(135deg, #FF6600 0%, #E65C00 100%);
+  color: var(--color-pure-white) !important;
+  border: none;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  box-shadow: 0 2px 8px rgba(255, 102, 0, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.markReadyBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.markReadyBtn:hover::before {
+  left: 100%;
+}
+
+.markReadyBtn:hover {
+  background: linear-gradient(135deg, #FF7A1A 0%, #CC5200 100%);
+  color: var(--color-pure-white) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 102, 0, 0.4);
+}
+
+/* Hand to Rider Button - Green with Hologram Slide Effect */
+.handToRiderBtn {
+  width: 100%;
+  background: var(--color-emerald-green);
+  color: var(--color-pure-white) !important;
+  border: none;
+  padding: 1rem 1.25rem;
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+
+.handToRiderBtn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+  transition: left 0.5s ease;
+}
+
+.handToRiderBtn:hover::before {
+  left: 100%;
+}
+
+.handToRiderBtn:hover {
+  background: var(--color-emerald-glow);
+  color: var(--color-pure-white) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.4);
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
   .orderCard {
-    padding: 12px;
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+  }
+  
+  .orderId {
+    font-size: 1.5rem;
+  }
+  
+  .timer {
+    position: static;
+    margin-top: 0.75rem;
+    align-self: flex-start;
+  }
+  
+  .cardHeader {
+    flex-direction: column;
+    align-items: flex-start;
   }
   
   .cardActions {
     flex-direction: column;
+    gap: 0.5rem;
   }
   
   .acceptBtn, .rejectBtn {

@@ -130,18 +130,24 @@ function Dashboard() {
     <div className={styles.dashboard}>
       <div className={styles.dashboardHeader}>
         <h1 className={styles.title}>Kitchen Dashboard</h1>
-        <div className={styles.stats}>
+        <div className={styles.statsRibbon}>
           <div className={styles.stat}>
             <span className={styles.statNumber}>{newOrders.length}</span>
-            <span className={styles.statLabel}>New Orders</span>
+            <div className={styles.statDetails}>
+              <span className={styles.statLabel}>New Orders</span>
+            </div>
           </div>
           <div className={styles.stat}>
             <span className={styles.statNumber}>{preparingOrders.length}</span>
-            <span className={styles.statLabel}>Preparing</span>
+            <div className={styles.statDetails}>
+              <span className={styles.statLabel}>Preparing</span>
+            </div>
           </div>
           <div className={styles.stat}>
             <span className={styles.statNumber}>{readyOrders.length}</span>
-            <span className={styles.statLabel}>Ready</span>
+            <div className={styles.statDetails}>
+              <span className={styles.statLabel}>Ready</span>
+            </div>
           </div>
         </div>
       </div>
