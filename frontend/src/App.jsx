@@ -11,7 +11,7 @@ import './App.css';
 
 function AppLayout() {
   const location = useLocation();
-  const isLandingPage = location.pathname === '/landing';
+  const isLandingPage = location.pathname === '/';
 
   if (isLandingPage) {
     return <Landing />;
@@ -23,7 +23,7 @@ function AppLayout() {
       <Navbar />
       <main className="main-content">
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/orders" element={<Dashboard />} />
           <Route path="/menu" element={<Menu />} />
           <Route path="/report" element={<Report />} />
         </Routes>
@@ -38,7 +38,7 @@ function App() {
     <RestaurantProvider>
       <Router>
         <Routes>
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/*" element={<AppLayout />} />
         </Routes>
       </Router>

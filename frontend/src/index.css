@@ -49,6 +49,26 @@
   font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
 }
 
+[data-theme="light"] {
+  --color-deep-obsidian: #F8FAFC;          /* Light Background */
+  --color-midnight-slate: #FFFFFF;         /* White card background */
+  --color-pure-white: #0F172A;             /* Dark Text for Light Mode */
+  --color-slate-silver: #64748B;           /* Slate Text */
+  --color-pure-black: #FFFFFF;             /* Navigation Background */
+  
+  --border-subtle: 1px solid rgba(0, 0, 0, 0.08);
+  --border-accent: 1px solid rgba(255, 102, 0, 0.2);
+  --overlay-glass: rgba(255, 255, 255, 0.8);
+  --overlay-modal: rgba(248, 250, 252, 0.85);
+  
+  --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.05);
+  --shadow-elevated: 0 8px 40px rgba(0, 0, 0, 0.1);
+}
+
+:root {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
 /* Global responsive reset */
 *, *::before, *::after {
   box-sizing: border-box;

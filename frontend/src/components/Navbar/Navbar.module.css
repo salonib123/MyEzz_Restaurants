@@ -42,39 +42,43 @@
   padding: 12px 8px;
   border-radius: 16px;
   text-decoration: none;
-  color: #94A3B8;
+  color: var(--color-slate-silver);
   background: transparent;
-  transition: all 0.3s ease;
+  transition: color 0.3s ease;
   cursor: pointer;
-  border: 2px solid transparent;
+  border: 2px solid transparent; /* Keep layout stable */
   position: relative;
+  isolation: isolate; /* Create new stacking context */
 }
 
-/* Active state accent bar */
+/* Remove old pseudo-element active state */
 .navLink.active::before {
-  content: '';
+  display: none;
+}
+
+.activeBackground {
   position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 3px;
-  height: 60%;
-  background: linear-gradient(180deg, #FF6600, #E65C00);
-  border-radius: 0 2px 2px 0;
+  inset: 0;
+  background: var(--gradient-flame);
+  border-radius: 16px;
+  z-index: -1;
+  box-shadow: var(--shadow-glow-orange);
 }
 
 .navLink:hover {
-  background: rgba(255, 102, 0, 0.1);
-  color: #FFFFFF;
+  color: var(--color-pure-white);
 }
 
 .navLink.active {
-  background: linear-gradient(135deg, #FF6600, #E65C00);
-  color: #FFFFFF;
+  color: var(--color-pure-white);
+  /* Background handled by framer-motion div */
 }
 
-.navLink.active:hover {
-  background: linear-gradient(135deg, #FF7A1A, #FF6600);
+/* Add z-index to content to ensure it sits on top of motion background */
+.iconContainer, 
+.navText {
+  z-index: 1;
+  position: relative;
 }
 
 .navIcon {
@@ -82,17 +86,6 @@
   width: 28px;
   height: 28px;
   transition: transform 0.2s ease;
-}
-
-.navLink:hover .navIcon {
-  transform: scale(1.1);
-}
-
-.navText {
-  font-size: 12px;
-  font-weight: 600;
-  text-align: center;
-  letter-spacing: 0.2px;
 }
 
 /* Responsive */
