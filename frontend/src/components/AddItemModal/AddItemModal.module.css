@@ -140,6 +140,76 @@
   padding-left: 38px;
 }
 
+/* Veg/Non-Veg Toggle */
+.vegToggle {
+  display: flex;
+  gap: 12px;
+}
+
+.vegOption {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 20px;
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #94A3B8;
+  font-weight: 500;
+  flex: 1;
+  justify-content: center;
+}
+
+.radioInput {
+  display: none;
+}
+
+.vegIndicator,
+.nonVegIndicator {
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.vegIndicator {
+  border: 2px solid #10B981;
+}
+
+.nonVegIndicator {
+  border: 2px solid #DC2626;
+}
+
+.vegDot,
+.nonVegDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.vegDot {
+  background: #10B981;
+}
+
+.nonVegDot {
+  background: #DC2626;
+}
+
+.vegSelected {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.1);
+  color: #10B981;
+}
+
+.nonVegSelected {
+  border-color: #DC2626;
+  background: rgba(220, 38, 38, 0.1);
+  color: #DC2626;
+}
+
 /* Actions */
 .actions {
   display: flex;

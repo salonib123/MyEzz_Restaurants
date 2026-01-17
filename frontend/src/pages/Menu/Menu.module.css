@@ -354,6 +354,10 @@
   color: #FFFFFF;
 }
 
+[data-theme="light"] .addButton:hover {
+  background: #E65C00;
+}
+
 [data-theme="light"] .addButton svg {
   color: #FFFFFF;
 }

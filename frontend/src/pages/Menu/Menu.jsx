@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react';
 import { Search, Plus } from 'lucide-react';
 import MenuItemCard from '../../components/MenuItemCard/MenuItemCard';
 import AddItemModal from '../../components/AddItemModal/AddItemModal';
-import Toast from '../../components/Toast/Toast';
+import SuccessToast from '../../components/ui/SuccessToast';
 import { mockMenuItems } from '../../data/mockMenu';
 import { CATEGORIES, STATUS_TABS } from '../../types/menu';
 import styles from './Menu.module.css';
@@ -68,12 +68,20 @@ function Menu() {
       name: newItemData.name,
       category: newItemData.category,
       price: newItemData.price,
+      isVeg: newItemData.isVeg,
       inStock: true
     };
 
     setMenuItems(prevItems => [...prevItems, newItem]);
     setIsAddModalOpen(false);
     setToast({ isVisible: true, message: `"${newItemData.name}" added to menu!` });
+  };
+
+  // Handle delete item
+  const handleDeleteItem = (itemId) => {
+    const item = menuItems.find(i => i.id === itemId);
+    setMenuItems(prevItems => prevItems.filter(i => i.id !== itemId));
+    setToast({ isVisible: true, message: `"${item?.name}" removed from menu` });
   };
 
   const closeToast = () => {
@@ -162,6 +170,7 @@ function Menu() {
               key={item.id}
               item={item}
               onToggleStock={handleToggleStock}
+              onDelete={handleDeleteItem}
             />
           ))
         ) : (
@@ -183,12 +192,13 @@ function Menu() {
         onAdd={handleAddItem}
       />
 
-      {/* Toast Notification */}
-      <Toast
-        message={toast.message}
-        isVisible={toast.isVisible}
-        onClose={closeToast}
-      />
+      {/* Success Toast Notification */}
+      {toast.isVisible && (
+        <SuccessToast
+          message={toast.message}
+          onClose={closeToast}
+        />
+      )}
     </div>
   );
 }

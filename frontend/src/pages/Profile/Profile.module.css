@@ -902,6 +902,47 @@
   color: #1A1C20;
 }
 
+/* Light mode - Edit button visibility */
+[data-theme="light"] .editBtn {
+  background: rgba(255, 102, 0, 0.12);
+  border-color: rgba(255, 102, 0, 0.3);
+  color: #FF6600;
+}
+
+[data-theme="light"] .editBtn:hover {
+  background: rgba(255, 102, 0, 0.2);
+}
+
+/* Light mode - Keep identity header dark for contrast */
+[data-theme="light"] .identityHeader {
+  background: #1F2937;
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
+[data-theme="light"] .identityHeader .restaurantName {
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .identityHeader .toggleLabel {
+  color: #94A3B8;
+}
+
+/* Light mode - Logout button with gradient red */
+[data-theme="light"] .logoutBtn {
+  background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+  border: none;
+  color: #FFFFFF;
+}
+
+[data-theme="light"] .logoutBtn:hover {
+  background: linear-gradient(135deg, #DC2626 0%, #B91C1C 100%);
+  box-shadow: 0 8px 24px rgba(220, 38, 38, 0.3);
+}
+
+[data-theme="light"] .logoutBtn svg {
+  color: #FFFFFF;
+}
+
 /* ========== RESPONSIVE ========== */
 @media (max-width: 640px) {
   .profile {
