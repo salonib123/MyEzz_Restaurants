@@ -210,3 +210,31 @@
     gap: 8px;
   }
 }
+
+/* Light Mode Styles */
+[data-theme="light"] .card {
+  background: rgba(255, 255, 255, 0.95);
+  border-color: rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+}
+
+[data-theme="light"] .card:hover {
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+  border-color: rgba(255, 102, 0, 0.25);
+}
+
+[data-theme="light"] .card.outOfStock {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+[data-theme="light"] .itemName {
+  color: #1A1C20;
+}
+
+[data-theme="light"] .category {
+  color: #1A1C20;
+}
+
+[data-theme="light"] .toggleOff {
+  background: #CBD5E1 !important;
+}

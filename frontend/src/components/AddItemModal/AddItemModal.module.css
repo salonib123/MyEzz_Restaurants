@@ -242,3 +242,70 @@
     flex-direction: column;
   }
 }
+
+/* Light Mode Styles */
+[data-theme="light"] .overlay {
+  background: rgba(0, 0, 0, 0.4);
+}
+
+[data-theme="light"] .modal {
+  background: linear-gradient(180deg, #FFFFFF 0%, #F5F5F5 100%);
+  border-color: rgba(0, 0, 0, 0.1);
+  box-shadow: 0 24px 48px rgba(0, 0, 0, 0.15);
+}
+
+[data-theme="light"] .header {
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .title {
+  color: #1A1C20;
+}
+
+[data-theme="light"] .closeButton {
+  background: rgba(0, 0, 0, 0.05) !important;
+  color: #64748B;
+}
+
+[data-theme="light"] .closeButton:hover {
+  background: rgba(0, 0, 0, 0.1) !important;
+  color: #1A1C20;
+}
+
+[data-theme="light"] .closeButton svg {
+  color: inherit;
+}
+
+[data-theme="light"] .label {
+  color: #64748B;
+}
+
+[data-theme="light"] .input,
+[data-theme="light"] .select {
+  background: rgba(248, 250, 252, 0.8);
+  border-color: rgba(0, 0, 0, 0.1);
+  color: #1A1C20;
+}
+
+[data-theme="light"] .input:focus,
+[data-theme="light"] .select:focus {
+  border-color: #10B981;
+  background: rgba(16, 185, 129, 0.05);
+}
+
+[data-theme="light"] .input::placeholder {
+  color: #94A3B8;
+}
+
+[data-theme="light"] .select {
+  background-color: rgba(248, 250, 252, 0.8);
+}
+
+[data-theme="light"] .select option {
+  background: #FFFFFF;
+  color: #1A1C20;
+}
+
+[data-theme="light"] .actions {
+  border-top-color: rgba(0, 0, 0, 0.08);
+}
