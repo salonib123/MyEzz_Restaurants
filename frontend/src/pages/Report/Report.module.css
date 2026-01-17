@@ -39,3 +39,12 @@
     font-size: 1.5rem;
   }
 }
+
+/* Light Mode Styles */
+[data-theme="light"] .report h1 {
+  color: #1A1C20;
+}
+
+[data-theme="light"] .report p {
+  color: #64748B;
+}
