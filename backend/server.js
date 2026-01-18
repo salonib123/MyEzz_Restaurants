@@ -1,8 +1,15 @@
 import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+import { createClient } from '@supabase/supabase-js';
 
-dotenv.config();
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
+dotenv.config({ path: path.resolve(__dirname, '.env') });
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -16,16 +23,22 @@ const hasSupabaseCredentials = process.env.SUPABASE_URL && process.env.SUPABASE_
 let supabase = null;
 let useMockData = !hasSupabaseCredentials;
 
-// Initialize Supabase only if credentials are available
+// Initialize Supabase
+console.log('DEBUG: Environment Variables Check:', { 
+    hasUrl: !!process.env.SUPABASE_URL, 
+    hasKey: !!process.env.SUPABASE_ANON_KEY,
+    cwd: process.cwd()
+});
+
 if (hasSupabaseCredentials) {
     try {
-        const { createClient } = await import('@supabase/supabase-js');
         supabase = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_ANON_KEY);
 
-        // Test connection with a real query to ensure table exists
-        const { error } = await supabase.from('orders').select('id').limit(1);
+        // Test connection (Checking 'restaurants' because we know it exists)
+        const { error } = await supabase.from('restaurants').select('id').limit(1);
         if (error) {
             console.warn('⚠️  Supabase connection failed, falling back to mock data');
+            console.error('DEBUG: Connection Error Details:', JSON.stringify(error, null, 2));
             useMockData = true;
         } else {
             console.log('✅ Successfully connected to Supabase');
@@ -33,53 +46,19 @@ if (hasSupabaseCredentials) {
         }
     } catch (error) {
         console.warn('⚠️  Failed to initialize Supabase, using mock data:', error.message);
+        console.error('DEBUG: Init Exception:', error);
         useMockData = true;
     }
+} else {
+    console.warn('⚠️  No credentials found in process.env');
 }
 
-// Mock in-memory database (used when Supabase is not available)
-let mockOrders = [
-    {
-        id: '1',
-        order_id: 'ORD001',
-        customer_name: 'Yug Patel',
-        items: [
-            { name: 'Margherita Pizza', quantity: 1 },
-            { name: 'Caesar Salad', quantity: 1 }
-        ],
-        total: 249.99,
-        status: 'new',
-        verification_code: 'A1B2',
-        created_at: new Date().toISOString()
-    },
-    {
-        id: '2',
-        order_id: 'ORD002',
-        customer_name: 'Aksh Maheshwari',
-        items: [
-            { name: 'Chicken Burger', quantity: 2 },
-            { name: 'French Fries', quantity: 1 }
-        ],
-        total: 185.00,
-        status: 'preparing',
-        verification_code: 'C3D4',
-        prep_time: 25,
-        accepted_at: new Date(Date.now() - 5 * 60 * 1000).toISOString(),
-        created_at: new Date().toISOString()
-    },
-    {
-        id: '3',
-        order_id: 'ORD003',
-        customer_name: 'Nayan Chellani',
-        items: [
-            { name: 'Pasta Carbonara', quantity: 1 }
-        ],
-        total: 157.50,
-        status: 'ready',
-        verification_code: 'E5F6',
-        created_at: new Date().toISOString()
-    }
-];
+// RESTAURANT ID LOGIC
+// Defaults to 2 (BE Bytes) if not specified in query param ?restaurantId=X
+const getRestaurantId = (req) => {
+    const id = req.query.restaurantId || req.headers['x-restaurant-id'];
+    return id ? parseInt(id) : 2;
+};
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -90,7 +69,7 @@ app.get('/health', (req, res) => {
     });
 });
 
-// --- MOCK DATA TRUTH STORE ---
+// --- MOCK DATA TRUTH STORE (For Reports Fallback) ---
 // This ensures all charts and metrics are mathematically consistent
 
 const generateHourlyData = (hours) => {
@@ -122,14 +101,13 @@ const mockStore = {
     week: generateDailyData(7)
 };
 
-// Start server
-app.listen(PORT, () => {
-    console.log('\n' + '='.repeat(60));
-    console.log('🚀 MyEzz Restaurant Backend Server');
-    console.log('='.repeat(60));
-    console.log(`✅ Server running on http://localhost:${PORT}`);
-    // ... rest of startup log
-});
+const mockMenuItems = [
+    { id: 101, name: 'Paneer Butter Masala', category: 'Main Course', price: 250, isVeg: true, inStock: true },
+    { id: 102, name: 'Chicken Biryani', category: 'Main Course', price: 300, isVeg: false, inStock: true },
+    { id: 103, name: 'Veg Hakka Noodles', category: 'Main Course', price: 180, isVeg: true, inStock: true },
+    { id: 104, name: 'Mango Juice', category: 'Beverages', price: 120, isVeg: true, inStock: true },
+    { id: 105, name: 'Garlic Naan', category: 'Breads', price: 50, isVeg: true, inStock: true },
+];
 
 // Helper: Get Date Range for Supabase Queries
 const getDateRange = (range) => {
@@ -157,12 +135,27 @@ const getDateRange = (range) => {
     return { start: start.toISOString(), end: end.toISOString() };
 };
 
+// Helper: Check if we should use mock for reports (even in Real Mode)
+// This handles the case where user has connected Supabase (Restaurants exist)
+// but hasn't created the 'orders' table yet.
+const checkReportMockStatus = async () => {
+    if (useMockData) return true;
+    const { error } = await supabase.from('orders').select('id').limit(1);
+    // Fallback to mock if there ANY error checking the orders table (missing, permission, etc.)
+    if (error) {
+        console.log(`DEBUG: Orders table check failed (Code: ${error.code}), falling back to mock reports.`);
+        return true;
+    }
+    return false;
+};
 
-// Get today's metrics (Centralized Calculation)
 app.get('/api/metrics/today', async (req, res) => {
     try {
-        if (useMockData) {
-            // Calculate Today's Totals
+        // Fallback to mock if orders table is missing
+        const isReportsMock = await checkReportMockStatus();
+
+        if (isReportsMock) {
+            // Calculate Today's Totals from mockStore
             const todaySales = mockStore.today.reduce((acc, curr) => acc + curr.sales, 0);
             const todayOrders = mockStore.today.reduce((acc, curr) => acc + curr.orders, 0);
             const todayAOV = todayOrders > 0 ? (todaySales / todayOrders) : 0;
@@ -185,7 +178,7 @@ app.get('/api/metrics/today', async (req, res) => {
                     totalOrders: todayOrders,
                     averageOrderValue: +todayAOV.toFixed(0),
                     date: new Date().toISOString().split('T')[0],
-                    hourlyTrend: mockStore.today.map(d => d.sales), // Sparkline data matches chart!
+                    hourlyTrend: mockStore.today.map(d => d.sales),
                     percentChange: {
                         gmv: calcChange(todaySales, yestSales),
                         orders: calcChange(todayOrders, yestOrders),
@@ -196,7 +189,7 @@ app.get('/api/metrics/today', async (req, res) => {
             return;
         }
 
-        // ... Existing Supabase logic ...
+        // ... Existing Supabase Logic from User's Branch + Reports additions ...
         const now = new Date();
         const startOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate());
         const endOfDay = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1);
@@ -207,7 +200,7 @@ app.get('/api/metrics/today', async (req, res) => {
         // Fetch Today's Orders
         const { data: orders, error } = await supabase
             .from('orders')
-            .select('total, created_at') // Added created_at for hourly trend
+            .select('total, created_at')
             .gte('created_at', startOfDay.toISOString())
             .lt('created_at', endOfDay.toISOString());
 
@@ -238,10 +231,7 @@ app.get('/api/metrics/today', async (req, res) => {
             return +(((current - previous) / previous) * 100).toFixed(1);
         };
 
-        // Calculate Hourly Trend (9 AM to 9 PM window to match mock data structure, or 24h?)
-        // Mock data was 13 items. Let's do 9AM - 9PM (13 hours) or just map hours present.
-        // Frontend expects array of sales numbers. 
-        // Let's create a 13-hour bucket (9:00 to 21:00)
+        // Calculate Hourly Trend (9 AM to 9 PM window)
         const hourlyBuckets = Array(13).fill(0);
         orders.forEach(o => {
             const h = new Date(o.created_at).getHours();
@@ -273,132 +263,186 @@ app.get('/api/metrics/today', async (req, res) => {
     }
 });
 
-// Create a new order (for testing purposes)
-app.post('/api/orders', async (req, res) => {
+// Update Restaurant Details
+app.put('/api/restaurant', async (req, res) => {
     try {
-        const { order_id, customer_name, items, total, status, verification_code } = req.body;
-
-        let newOrder;
+        const id = getRestaurantId(req);
+        const { name, business_name, gstin } = req.body;
 
         if (useMockData) {
-            // Use mock data
-            newOrder = {
-                id: String(mockOrders.length + 1),
-                order_id,
-                customer_name,
-                items,
-                total: parseFloat(total),
-                status,
-                verification_code,
-                created_at: new Date().toISOString()
-            };
-            mockOrders.push(newOrder);
-        } else {
-            // Use Supabase
-            const { data, error } = await supabase
-                .from('orders')
-                .insert([
-                    {
-                        order_id,
-                        customer_name,
-                        items,
-                        total,
-                        status,
-                        verification_code,
-                        created_at: new Date().toISOString()
-                    }
-                ])
-                .select();
-
-            if (error) throw error;
-            newOrder = data[0];
+            // Mock update
+            return res.json({ success: true, data: { ...req.body, id } });
         }
 
-        console.log(`✅ New order created: ${order_id} - ₹${total}`);
+        const { data, error } = await supabase
+            .from('restaurants')
+            .update({ name, business_name, gstin })
+            .eq('id', id)
+            .select()
+            .single();
 
-        res.json({
-            success: true,
-            data: newOrder
-        });
+        if (error) throw error;
+        res.json({ success: true, data });
     } catch (error) {
-        console.error('Error creating order:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to create order',
-            message: error.message
-        });
+        console.error('Error updating restaurant:', error);
+        res.status(500).json({ success: false, error: 'Failed to update restaurant details' });
     }
 });
 
-// Get all orders (optional - for debugging)
-app.get('/api/orders', async (req, res) => {
+// Get Restaurant Details
+app.get('/api/restaurant', async (req, res) => {
     try {
-        let orders;
+        const id = getRestaurantId(req);
+        if (useMockData) return res.json({ success: true, data: { name: 'Mock Restaurant' } });
 
-        if (useMockData) {
-            orders = mockOrders;
-        } else {
-            const { data, error } = await supabase
-                .from('orders')
-                .select('*')
-                .order('created_at', { ascending: false })
-                .limit(100);
+        const { data, error } = await supabase
+            .from('restaurants')
+            .select('*')
+            .eq('id', id)
+            .single();
 
-            if (error) throw error;
-            orders = data;
-        }
-
-        res.json({
-            success: true,
-            data: orders
-        });
+        if (error) throw error;
+        res.json({ success: true, data });
     } catch (error) {
-        console.error('Error fetching orders:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to fetch orders',
-            message: error.message
-        });
+        console.error('Error fetching restaurant:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch restaurant details' });
     }
 });
 
-// Delete an order (for testing)
-app.delete('/api/orders/:orderId', async (req, res) => {
+// ============================================
+// Menu Items API Endpoints
+// ============================================
+
+// Get all menu items
+app.get('/api/menu', async (req, res) => {
     try {
-        const { orderId } = req.params;
-
         if (useMockData) {
-            const initialLength = mockOrders.length;
-            mockOrders = mockOrders.filter(order => order.order_id !== orderId);
-
-            if (mockOrders.length < initialLength) {
-                console.log(`🗑️  Deleted order: ${orderId}`);
-                res.json({ success: true, message: 'Order deleted' });
-            } else {
-                res.status(404).json({ success: false, error: 'Order not found' });
-            }
-        } else {
-            const { error } = await supabase
-                .from('orders')
-                .delete()
-                .eq('order_id', orderId);
-
-            if (error) throw error;
-            console.log(`🗑️  Deleted order: ${orderId}`);
-            res.json({ success: true, message: 'Order deleted' });
+            console.log('DEBUG: Serving Mock Menu Items');
+            return res.json({ success: true, data: mockMenuItems }); 
         }
+
+        const restaurantId = getRestaurantId(req);
+
+        // Fetch items joined with categories
+        const { data, error } = await supabase
+            .from('menu_items')
+            .select('*, categories(name)')
+            .eq('restaurant_id', restaurantId)
+            .order('name');
+
+        if (error) throw error;
+
+        // Transform to frontend format
+        const transformedItems = data.map(item => ({
+            id: item.id,
+            name: item.name,
+            category: item.categories?.name || 'Uncategorized',
+            price: parseFloat(item.price),
+            inStock: true, 
+            isVeg: item.is_veg,
+            imageUrl: null 
+        }));
+
+        res.json({
+            success: true,
+            data: transformedItems
+        });
+    } catch (error) {
+        console.error('Error fetching menu items:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch menu items' });
+    }
+});
+
+// Get all categories
+app.get('/api/categories', async (req, res) => {
+    try {
+        if (useMockData) return res.json({ success: true, data: [] });
+
+        const { data, error } = await supabase
+            .from('categories')
+            .select('id, name')
+            .order('name');
+
+        if (error) throw error;
+
+        res.json({
+            success: true,
+            data: data
+        });
+    } catch (error) {
+        console.error('Error fetching categories:', error);
+        res.status(500).json({ success: false, error: 'Failed to fetch categories' });
+    }
+});
+
+// Add menu item
+app.post('/api/menu', async (req, res) => {
+    try {
+        const { name, category, price, isVeg } = req.body;
+
+        if (useMockData) return res.status(500).json({ error: 'Supabase not connected' });
+
+        // 1. Find category ID from name
+        const { data: catData, error: catError } = await supabase
+            .from('categories')
+            .select('id')
+            .eq('name', category)
+            .single();
+        
+        if (catError) {
+             console.error('Category lookup failed:', catError);
+             return res.status(400).json({ error: 'Invalid category' });
+        }
+
+        // 2. Insert item
+        const { data, error } = await supabase
+            .from('menu_items')
+            .insert([{
+                name,
+                category_id: catData.id,
+                price,
+                is_veg: isVeg,
+                restaurant_id: getRestaurantId(req),
+            }])
+            .select();
+
+        if (error) throw error;
+
+        res.json({ success: true, data: data[0] });
+    } catch (error) {
+        console.error('Error adding item:', error);
+        res.status(500).json({ success: false, error: error.message });
+    }
+});
+
+// Delete menu item
+app.delete('/api/menu/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (useMockData) return res.status(500).json({ error: 'Supabase not connected' });
+
+        const { error } = await supabase
+            .from('menu_items')
+            .delete()
+            .eq('id', id);
+
+        if (error) throw error;
+        res.json({ success: true });
     } catch (error) {
         res.status(500).json({ success: false, error: error.message });
     }
 });
+
 // --- REPORTS API ENDPOINTS ---
 
 // 1. Sales Trend Data
 app.get('/api/reports/sales', async (req, res) => {
+    const isMock = await checkReportMockStatus();
+    console.log(`DEBUG: GET /api/reports/sales - Mode: ${isMock ? 'MOCK' : 'REAL'}`);
     try {
         const { range } = req.query; // 'today', 'yesterday', '7days'
 
-        if (useMockData) {
+        if (isMock) {
             let data = [];
             if (range === 'today') data = mockStore.today;
             else if (range === 'yesterday') data = mockStore.yesterday;
@@ -407,8 +451,9 @@ app.get('/api/reports/sales', async (req, res) => {
             res.json({ success: true, data });
         } else {
             const { start, end } = getDateRange(range);
+            console.log(`DEBUG: Date Range: ${start} to ${end}`);
 
-            // Fetch orders for the range
+            // Fetch orders for the range (hourly aggregation fallback logic applied)
             const { data: orders, error } = await supabase
                 .from('orders')
                 .select('total, created_at')
@@ -416,28 +461,22 @@ app.get('/api/reports/sales', async (req, res) => {
                 .lte('created_at', end)
                 .order('created_at', { ascending: true });
 
-            if (error) throw error;
-
-            // Group by date or hour depending on range
-            // For 'today'/'yesterday', we might want hourly. For others, daily.
-            // But frontend SalesChart expects array of objects with 'date' (or 'time') and 'sales', 'orders'.
+            if (error) {
+                console.error('DEBUG: Supabase Query Error:', error);
+                throw error;
+            }
 
             if (range === 'today' || range === 'yesterday') {
-                // Hourly aggregation
-                // Initialize 9AM to 9PM (or full 24h?) - Mock data does 9-9. Let's do generic map.
-                // Actually frontend chart handles whatever it gets? 
-                // Let's just group by hour.
                 const hourlyMap = {};
                 orders.forEach(o => {
                     const h = new Date(o.created_at).getHours();
-                    const label = `${h}:00`; // Simple label
+                    const label = `${h}:00`; 
                     if (!hourlyMap[label]) hourlyMap[label] = { time: label, sales: 0, orders: 0 };
                     hourlyMap[label].sales += parseFloat(o.total);
                     hourlyMap[label].orders += 1;
                 });
                 res.json({ success: true, data: Object.values(hourlyMap) });
             } else {
-                // Daily aggregation
                 const dailyMap = {};
                 orders.forEach(o => {
                     const d = new Date(o.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
@@ -449,6 +488,7 @@ app.get('/api/reports/sales', async (req, res) => {
             }
         }
     } catch (err) {
+        console.error('DEBUG: Sales Report Handler Error:', err);
         res.status(500).json({ success: false, error: err.message });
     }
 });
@@ -457,11 +497,11 @@ app.get('/api/reports/sales', async (req, res) => {
 app.get('/api/reports/orders', async (req, res) => {
     try {
         const { range } = req.query;
+        const isMock = await checkReportMockStatus();
 
-        // Simulate different stats based on range
-        if (useMockData) {
+        if (isMock) {
             let factor = 1;
-            if (range === 'today') factor = 0.15; // Small numbers for today
+            if (range === 'today') factor = 0.15;
             else if (range === 'yesterday') factor = 0.14;
             else if (range === '7days') factor = 1;
             else if (range === '30days') factor = 4.2;
@@ -480,7 +520,6 @@ app.get('/api/reports/orders', async (req, res) => {
         } else {
             const { start, end } = getDateRange(range);
 
-            // Count by status
             const { data: orders, error } = await supabase
                 .from('orders')
                 .select('status, prep_time')
@@ -510,7 +549,6 @@ app.get('/api/reports/orders', async (req, res) => {
                 }
             });
 
-            // Calculate metrics
             const avgPrepTime = stats.prepCount > 0 ? Math.round(stats.totalPrepTime / stats.prepCount) + ' min' : '0 min';
             const completionRate = stats.received > 0 ? Math.round((stats.accepted / stats.received) * 100) : 0;
 
@@ -535,14 +573,13 @@ app.get('/api/reports/orders', async (req, res) => {
 app.get('/api/reports/menu', async (req, res) => {
     try {
         const { range } = req.query;
+        const isMock = await checkReportMockStatus();
 
-        if (useMockData) {
-            // ... mock logic ...
+        if (isMock) {
             let factor = 1;
             if (range === 'today') factor = 0.2;
             else if (range === 'yesterday') factor = 0.18;
             else if (range === '30days') factor = 4;
-
             const scale = (val) => Math.floor(val * factor);
 
             res.json({
@@ -564,48 +601,34 @@ app.get('/api/reports/menu', async (req, res) => {
             });
         } else {
             const { start, end } = getDateRange(range);
-
-            // We need to fetch items from orders
-            // Assuming 'items' column is JSONB array: [{name: "...", quantity: 1, price: 100}, ...]
             const { data: orders, error } = await supabase
                 .from('orders')
-                .select('items, total') // items is crucial here
+                .select('items, total')
                 .gte('created_at', start)
                 .lte('created_at', end);
 
             if (error) throw error;
 
             const itemStats = {};
-
             orders.forEach(order => {
                 if (Array.isArray(order.items)) {
                     order.items.forEach(item => {
                         const name = item.name;
-                        const price = item.price || 0; // Assuming price is in item, or derived?
-                        // If price isn't in item, we might need a menu table. Assuming rudimentary structure for now.
-                        // Or we can approximate revenue if not available.
-                        // For this fallback, let's assume we can get quantity.
-
                         if (!itemStats[name]) itemStats[name] = { name, orders: 0, revenue: 0 };
                         itemStats[name].orders += (item.quantity || 1);
-                        // Revenue approximation if price exists, else mock/skip
                         if (item.price) itemStats[name].revenue += (item.price * (item.quantity || 1));
                     });
                 }
             });
 
             const allItems = Object.values(itemStats);
-            allItems.sort((a, b) => b.orders - a.orders); // Sort by orders (popularity)
-
+            allItems.sort((a, b) => b.orders - a.orders);
             const topItems = allItems.slice(0, 5);
             const leastItems = allItems.slice(-5).reverse();
 
             res.json({
                 success: true,
-                data: {
-                    topItems,
-                    leastItems
-                }
+                data: { topItems, leastItems }
             });
         }
     } catch (err) {
@@ -617,23 +640,11 @@ app.get('/api/reports/menu', async (req, res) => {
 app.get('/api/reports/heatmap', async (req, res) => {
     try {
         const { range } = req.query;
+        const isMock = await checkReportMockStatus();
 
-        if (useMockData) {
-            // ... mock logic ...
-            if (range === 'today') {
-                res.json({
-                    success: true,
-                    data: [
-                        { name: '12 PM', value: 20 }, { name: '1 PM', value: 45 },
-                        { name: '2 PM', value: 30 }, { name: '3 PM', value: 10 },
-                        { name: '7 PM', value: 60 }, { name: '8 PM', value: 80 },
-                        { name: '9 PM', value: 50 }, { name: '10 PM', value: 20 }
-                    ]
-                });
-                return;
-            }
-
-            res.json({
+        if (isMock) {
+            // Mock data...
+             res.json({
                 success: true,
                 data: [
                     { name: '12 PM', value: 40 },
@@ -648,7 +659,6 @@ app.get('/api/reports/heatmap', async (req, res) => {
             });
         } else {
             const { start, end } = getDateRange(range);
-
             const { data: orders, error } = await supabase
                 .from('orders')
                 .select('created_at')
@@ -660,24 +670,17 @@ app.get('/api/reports/heatmap', async (req, res) => {
             const hoursMap = {};
             orders.forEach(o => {
                 const h = new Date(o.created_at).getHours();
-                // Format to AM/PM
                 const ampm = h >= 12 ? 'PM' : 'AM';
                 const hour12 = h % 12 || 12;
                 const label = `${hour12} ${ampm}`;
-
                 if (!hoursMap[label]) hoursMap[label] = 0;
                 hoursMap[label]++;
             });
 
-            // Convert map to array expected by chart
             const data = Object.keys(hoursMap).map(key => ({
                 name: key,
                 value: hoursMap[key]
             }));
-
-            // Optional: Sort by time? Or just send as is (chart handles it?)
-            // For now, sending as extracted.
-
             res.json({ success: true, data });
         }
     } catch (err) {
@@ -689,28 +692,19 @@ app.get('/api/reports/heatmap', async (req, res) => {
 app.get('/api/reports/customers', async (req, res) => {
     try {
         const { range } = req.query;
-
-        if (useMockData) {
-            let factor = 1;
-            if (range === 'today') factor = 0.1;
-            else if (range === '30days') factor = 4;
-
+        const isMock = await checkReportMockStatus();
+        if (isMock) {
             res.json({
                 success: true,
                 data: {
-                    newCustomers: Math.floor(45 * factor),
-                    returningCustomers: Math.floor(83 * factor),
+                    newCustomers: 45,
+                    returningCustomers: 83,
                     repeatRate: 65,
                     avgOrdersPerCustomer: 2.4
                 }
             });
         } else {
             const { start, end } = getDateRange(range);
-
-            // To properly calc "new" vs "returning", we need historical data outside the range, 
-            // but for simpler dashboard logic, let's just count unique customers in this range
-            // and maybe check if they have orders prior to 'start'.
-
             const { data: orders, error } = await supabase
                 .from('orders')
                 .select('customer_name, created_at')
@@ -729,28 +723,18 @@ app.get('/api/reports/customers', async (req, res) => {
             const uniqueCustomers = Object.keys(customerCounts).length;
             const totalOrders = orders.length;
             const avgOrdersPerCustomer = uniqueCustomers ? (totalOrders / uniqueCustomers).toFixed(1) : 0;
-
-            // For New vs Returning, without a customers table, we can just randomly split or assume distinct names > 1 order = returning?
-            // Let's assume returning = customerCounts[name] > 1 in this period (simplification)
-
+            
             let returning = 0;
             let newCust = 0;
-
             Object.values(customerCounts).forEach(count => {
                 if (count > 1) returning++;
                 else newCust++;
             });
-
             const repeatRate = uniqueCustomers ? Math.round((returning / uniqueCustomers) * 100) : 0;
 
             res.json({
                 success: true,
-                data: {
-                    newCustomers: newCust,
-                    returningCustomers: returning,
-                    repeatRate,
-                    avgOrdersPerCustomer
-                }
+                data: { newCustomers: newCust, returningCustomers: returning, repeatRate, avgOrdersPerCustomer }
             });
         }
     } catch (err) {
@@ -771,3 +755,15 @@ app.get('/api/reports/insights', async (req, res) => {
 });
 
 
+// Start server
+app.listen(PORT, () => {
+    console.log('\n' + '='.repeat(60));
+    console.log('🚀 MyEzz Restaurant Backend Server');
+    console.log('='.repeat(60));
+    console.log(`✅ Server running on http://localhost:${PORT}`);
+    console.log(`📊 Metrics endpoint: http://localhost:${PORT}/api/metrics/today`);
+    console.log(`💚 Health check: http://localhost:${PORT}/health`);
+    console.log(`📦 All orders: http://localhost:${PORT}/api/orders`);
+    console.log('');
+    console.log('=' .repeat(60) + '\n');
+});
