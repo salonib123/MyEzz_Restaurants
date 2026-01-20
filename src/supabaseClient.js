@@ -6,5 +6,3 @@ export const supabase = createClient(
   "https://placeholder.supabase.co",
   "public-anon-key-placeholder"
 )
-
-

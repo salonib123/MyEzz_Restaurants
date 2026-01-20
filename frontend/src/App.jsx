@@ -1,63 +1,78 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
-import { AnimatePresence } from 'framer-motion';
-import { RestaurantProvider, useRestaurant } from './context/RestaurantContext';
-import Header from './components/Header/Header';
-import Navbar from './components/Navbar/Navbar';
-import Footer from './components/Footer/Footer';
-import Dashboard from './pages/Dashboard/Dashboard';
-import Menu from './pages/Menu/Menu';
-import Report from './pages/Report/Report';
-import Profile from './pages/Profile/Profile';
-import Landing from './pages/Landing/Landing';
-import './App.css';
+//src/App.jsx
+import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useParams } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
+import { RestaurantProvider, useRestaurant } from "./context/RestaurantContext";
 
-function AppLayout() {
-  const location = useLocation();
-  const isLandingPage = location.pathname === '/';
 
-  if (isLandingPage) {
-    return <Landing />;
+import Header from "./components/Header/Header";
+import Navbar from "./components/Navbar/Navbar";
+import Footer from "./components/Footer/Footer";
+import History from "./pages/History/History";
+
+import Dashboard from "./pages/Dashboard/Dashboard";
+import Menu from "./pages/Menu/Menu";
+import Report from "./pages/Report/Report";
+import Profile from "./pages/Profile/Profile";
+import Landing from "./pages/Landing/Landing";
+import RestaurantLogin from "./pages/RestaurantLogin/RestaurantLogin";
+
+import "./App.css";
+
+function RestaurantLayout() {
+  const { restaurantId } = useParams();
+  const numericId = Number(restaurantId);
+
+  if (!numericId || numericId <= 0) {
+    return <Navigate to="/" replace />;
   }
 
   return (
-    <div className="app">
-      <Header />
-      <Navbar />
-      <main className="main-content">
-        <Routes>
-          <Route path="/orders" element={<Dashboard />} />
-          <Route path="/menu" element={<Menu />} />
-          <Route path="/report" element={<Report />} />
-        </Routes>
+    <RestaurantProvider restaurantId={numericId}>
+      <div className="app">
+        <Header />
+        <Navbar />
+        <main className="main-content">
+          <Outlet />
+          <Footer />
+        </main>
+      </div>
 
-        <Footer />
-      </main>
-    </div>
+      <RestaurantProfile />
+    </RestaurantProvider>
   );
 }
 
-const AppContent = () => {
+function RestaurantProfile() {
   const { isProfileOpen } = useRestaurant();
+
   return (
-    <>
-      <Router>
-        <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/*" element={<AppLayout />} />
-        </Routes>
-      </Router>
-      <AnimatePresence>
-        {isProfileOpen && <Profile />}
-      </AnimatePresence>
-    </>
+    <AnimatePresence>
+      {isProfileOpen && <Profile />}
+    </AnimatePresence>
   );
-};
+}
 
 function App() {
   return (
-    <RestaurantProvider>
-      <AppContent />
-    </RestaurantProvider>
+    <Router>
+      <Routes>
+        <Route path="/" element={<Landing />} />
+        <Route path="/restaurant/login" element={<RestaurantLogin />} />
+
+        {}
+        <Route path="/:restaurantId" element={<RestaurantLayout />}>
+          <Route path="orders" element={<Dashboard />} />
+          <Route path="history" element={<History />} />
+          <Route path="menu" element={<Menu />} />
+          <Route path="report" element={<Report />} />
+          <Route path="history" element={<History />} />
+          <Route index element={<Navigate to="menu" replace />} />
+        </Route>
+
+        {}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 

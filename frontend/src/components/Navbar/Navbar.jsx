@@ -1,37 +1,37 @@
-import { Link, useLocation } from 'react-router-dom';
-import { Home, UtensilsCrossed, BarChart3, Clock } from 'lucide-react';
-import { motion } from 'framer-motion';
-import SettingsPanel from './SettingsPanel';
-import styles from './Navbar.module.css';
+import { Link, useLocation } from "react-router-dom";
+import { Home, UtensilsCrossed, BarChart3, Clock } from "lucide-react";
+import { motion } from "framer-motion";
+import SettingsPanel from "./SettingsPanel";
+import styles from "./Navbar.module.css";
 
 const Navbar = () => {
   const location = useLocation();
 
   const navigationItems = [
     {
-      path: '/orders',
-      name: 'Orders',
+      path: "orders",
+      name: "Orders",
       icon: Home,
-      ariaLabel: 'Navigate to Orders'
+      ariaLabel: "Navigate to Orders",
     },
     {
-      path: '/history',
-      name: 'History',
+      path: "history",
+      name: "History",
       icon: Clock,
-      ariaLabel: 'View Order History'
+      ariaLabel: "View Order History",
     },
     {
-      path: '/menu',
-      name: 'Menu',
+      path: "menu",
+      name: "Menu",
       icon: UtensilsCrossed,
-      ariaLabel: 'Navigate to Menu'
+      ariaLabel: "Navigate to Menu",
     },
     {
-      path: '/report',
-      name: 'Dashboard', // Changed from Report to Dashboard
+      path: "report",
+      name: "Dashboard",
       icon: BarChart3,
-      ariaLabel: 'Navigate to Dashboard'
-    }
+      ariaLabel: "Navigate to Dashboard",
+    },
   ];
 
   return (
@@ -39,31 +39,36 @@ const Navbar = () => {
       <ul className={styles.navList}>
         {navigationItems.map((item) => {
           const IconComponent = item.icon;
+          const isActive = location.pathname.endsWith(`/${item.path}`);
+
           return (
             <li key={item.path} className={styles.navItem}>
               <Link
-                to={item.path}
+                to={item.path} // ✅ RELATIVE
                 className={`${styles.navLink} ${
-                  location.pathname === item.path ? styles.active : ''
+                  isActive ? styles.active : ""
                 }`}
                 aria-label={item.ariaLabel}
-                aria-current={location.pathname === item.path ? 'page' : undefined}
+                aria-current={isActive ? "page" : undefined}
               >
-                {location.pathname === item.path && (
+                {isActive && (
                   <motion.div
                     layoutId="activeTab"
                     className={styles.activeBackground}
-                    initial={false}
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0 }}
                     transition={{
                       type: "spring",
                       stiffness: 500,
-                      damping: 30
+                      damping: 30,
                     }}
                   />
                 )}
+
                 <span className={styles.iconContainer}>
-                  <IconComponent 
-                    className={styles.navIcon} 
+                  <IconComponent
+                    className={styles.navIcon}
                     size={20}
                     strokeWidth={1.5}
                     aria-hidden="true"
@@ -75,7 +80,7 @@ const Navbar = () => {
           );
         })}
       </ul>
-      
+
       <SettingsPanel />
     </nav>
   );

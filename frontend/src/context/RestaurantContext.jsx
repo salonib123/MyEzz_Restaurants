@@ -24,10 +24,8 @@ export const RestaurantProvider = ({ children }) => {
   };
 
   const value = {
-    restaurantName,
     isOnline,
     restaurantName,
-    isOnline,
     setOnlineStatus,
     isProfileOpen,
     toggleProfile
